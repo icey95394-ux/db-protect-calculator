@@ -108,7 +108,7 @@
                             <option value="3" selected>三级等保（重要信息系统）</option>
                             <option value="4">四级等保（关键信息基础设施）</option>
                         </select>
-                        <div class="hint">三级等保适用于金融、医疗、政务等重要系统</div>
+                        <div class="hint" id="level-hint">三级等保适用于金融、医疗、政务等重要系统</div>
                     </div>
                     <div class="form-group">
                         <label for="environment">部署环境 *</label>
@@ -338,11 +338,12 @@
             },
             cloudFirewall: {
                 name: '云防火墙',
-                desc: '南北向 + 东西向流量管控',
+                desc: '南北向 + 东西向流量管控（二级：高级版 | 三级：企业版）',
                 tag: 'required',
                 basePrice: 4800,
                 pricing: 'tier',
                 tiers: { 2: 4800, 3: 9600, 4: 19200 },
+                versions: { 2: '高级版', 3: '企业版', 4: '旗舰版' },
                 required: [2, 3, 4]
             },
             sslCert: {
@@ -354,14 +355,7 @@
                 domainPrice: 2000,
                 required: [2, 3, 4]
             },
-            backup: {
-                name: '云备份服务',
-                desc: '数据备份与恢复',
-                tag: 'required',
-                basePrice: 1200,
-                pricing: 'ecs', // 按服务器
-                required: [2, 3, 4]
-            },
+
             
             // 增值安全产品（可选）
             bot: {
@@ -420,6 +414,15 @@
                 rules: 20,
                 extraRulePrice: 200,
                 required: []
+            },
+            soc: {
+                name: 'Agentic SOC（智能安全运营中心）',
+                desc: 'AI 驱动的安全事件自动响应、威胁狩猎、智能分析',
+                tag: 'recommended',
+                basePrice: 50000,
+                pricing: 'tier',
+                tiers: { 2: 30000, 3: 50000, 4: 80000 },
+                required: []
             }
         };
         
@@ -437,18 +440,36 @@
             4: { name: '四级渗透测试', price: 40000 }
         };
         
+        // 更新等保级别提示
+        function updateLevelHint(level) {
+            const hint = document.getElementById('level-hint');
+            if (level === 2) {
+                hint.textContent = '💡 对外提供服务，但用户量小、无舆情风险；对内业务如 OA 系统（仅限员工使用）、小型官网、测试环境系统';
+                hint.style.color = '#28a745';
+            } else if (level === 3) {
+                hint.textContent = '💡 对外提供服务，且用户量大、社会关注度高、易引发舆情（如官网、开放平台、其他核心系统等）';
+                hint.style.color = '#dc3545';
+            } else if (level === 4) {
+                hint.textContent = '💡 关键信息基础设施，一旦遭到破坏会严重危害国家安全、社会秩序和公共利益';
+                hint.style.color = '#dc3545';
+            }
+        }
+        
         // 初始化产品列表
         function updateProducts() {
             const level = parseInt(document.getElementById('level').value);
             const requiredContainer = document.getElementById('required-products');
             const advancedContainer = document.getElementById('advanced-products');
             
+            // 更新级别提示
+            updateLevelHint(level);
+            
             // 渲染必选产品
             requiredContainer.innerHTML = '';
             Object.keys(PRICING).forEach(key => {
                 const product = PRICING[key];
                 if (product.required && product.required.includes(level)) {
-                    requiredContainer.appendChild(createProductCard(key, product, true));
+                    requiredContainer.appendChild(createProductCard(key, product, true, level));
                 }
             });
             
@@ -457,13 +478,13 @@
             Object.keys(PRICING).forEach(key => {
                 const product = PRICING[key];
                 if (!product.required || !product.required.includes(level)) {
-                    advancedContainer.appendChild(createProductCard(key, product, false));
+                    advancedContainer.appendChild(createProductCard(key, product, false, level));
                 }
             });
         }
         
         // 创建产品卡片
-        function createProductCard(key, product, isRequired) {
+        function createProductCard(key, product, isRequired, level) {
             const div = document.createElement('div');
             div.className = `product-card ${isRequired ? 'required' : ''}`;
             div.onclick = () => toggleProduct(key, div);
@@ -471,13 +492,19 @@
             const tagClass = `tag-${product.tag}`;
             const tagName = product.tag === 'required' ? '等保必选' : product.tag === 'recommended' ? '推荐配置' : '可选增值';
             
-            const priceText = formatPrice(product, 10, 5, 1000, 3, 5);
+            // 显示产品版本（如果有）
+            let versionText = '';
+            if (product.versions && product.versions[level]) {
+                versionText = `<span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; margin-left: 8px;">${product.versions[level]}</span>`;
+            }
+            
+            const priceText = formatPrice(product, 10, 5, 1000, 3, 5, level);
             
             div.innerHTML = `
                 <div class="product-header">
                     <div class="checkbox-wrapper">
                         <input type="checkbox" id="prod_${key}" ${isRequired ? 'checked disabled' : ''} value="${key}">
-                        <span class="product-name">${product.name}</span>
+                        <span class="product-name">${product.name}${versionText}</span>
                     </div>
                     <span class="product-tag ${tagClass}">${tagName}</span>
                 </div>
@@ -489,7 +516,7 @@
         }
         
         // 格式化价格显示
-        function formatPrice(product, ecsCount, dbCount, qps, storageTB, domainCount) {
+        function formatPrice(product, ecsCount, dbCount, qps, storageTB, domainCount, level) {
             if (product.pricing === 'free') return '免费';
             
             let price = product.basePrice;
@@ -517,7 +544,7 @@
                 price += extra;
                 unit = `/年 (首域名包含)`;
             } else if (product.pricing === 'tier') {
-                price = product.tiers[3] || product.basePrice;
+                price = product.tiers[level] || product.tiers[3] || product.basePrice;
                 unit = '/年';
             } else if (product.pricing === 'container') {
                 const extra = 20 * (product.perCore || 0);
@@ -574,7 +601,7 @@
                 if (!checkbox || !checkbox.checked) return;
                 
                 const isRequired = product.required && product.required.includes(level);
-                let price = calculateProductPrice(product, ecsCount, containerCores, domainCount, qps, dbInstances, storageTB);
+                let price = calculateProductPrice(product, ecsCount, containerCores, domainCount, qps, dbInstances, storageTB, level);
                 
                 const item = {
                     name: product.name,
@@ -613,7 +640,7 @@
         }
         
         // 计算单个产品价格
-        function calculateProductPrice(product, ecsCount, containerCores, domainCount, qps, dbInstances, storageTB) {
+        function calculateProductPrice(product, ecsCount, containerCores, domainCount, qps, dbInstances, storageTB, level) {
             let price = product.basePrice;
             
             if (product.pricing === 'free') return 0;
@@ -635,7 +662,7 @@
             } else if (product.pricing === 'domain') {
                 price += Math.max(0, domainCount - 1) * (product.domainPrice || 0);
             } else if (product.pricing === 'tier') {
-                price = product.tiers[3] || product.basePrice;
+                price = product.tiers[level] || product.tiers[3] || product.basePrice;
             } else if (product.pricing === 'container') {
                 price += containerCores * (product.perCore || 0);
             }
@@ -727,6 +754,9 @@
         
         // 页面加载时初始化
         updateProducts();
+        
+        // 初始化级别提示
+        updateLevelHint(3);
     </script>
 </body>
 </html>

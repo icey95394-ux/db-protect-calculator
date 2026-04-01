@@ -137,10 +137,10 @@
                     <div class="form-group">
                         <label for="containerCores">容器核数</label>
                         <div class="input-with-unit">
-                            <input type="number" id="containerCores" value="20" min="0" max="10000">
+                            <input type="number" id="containerCores" value="20" min="0" max="10000" onchange="updateProducts()">
                             <div class="unit">核</div>
                         </div>
-                        <div class="hint">ACK/ECI 等容器服务的 CPU 核数</div>
+                        <div class="hint">ACK/ECI 等容器服务的 CPU 核数（>0 时云安全中心自动升级旗舰版）</div>
                     </div>
                     <div class="form-group">
                         <label for="domainCount">域名个数 *</label>
@@ -302,43 +302,29 @@
                 required: [3, 4]
             },
             hostSecurity: {
-                name: '云安全中心（企业版）',
-                desc: '主机入侵检测、漏洞管理、基线检查',
+                name: '云安全中心',
+                desc: '主机入侵检测、漏洞管理、基线检查（二级：高级版 | 三级/容器：旗舰版）',
                 tag: 'required',
                 basePrice: 2000,
-                pricing: 'ecs', // 按服务器台数
+                pricing: 'ecs',
+                versions: { 2: '高级版', 3: '旗舰版', 4: '旗舰版' },
+                containerUpgrade: true, // 有容器时自动升级旗舰版
                 required: [2, 3, 4]
             },
             bastion: {
-                name: '堡垒机（运维安全中心）',
-                desc: '运维审计、权限管控、会话录制',
+                name: '堡垒机',
+                desc: '运维审计、权限管控、会话录制（二级：高级版 | 三级：企业版）',
                 tag: 'required',
-                basePrice: 9600,
+                basePrice: 4800,
                 pricing: 'tier',
-                tiers: { 2: 9600, 3: 19200, 4: 38400 }, // 按并发数
+                tiers: { 2: 4800, 3: 9600, 4: 19200 },
+                versions: { 2: '高级版', 3: '企业版', 4: '旗舰版' },
                 required: [2, 3, 4]
             },
-            dbAudit: {
-                name: '数据库审计',
-                desc: '数据库操作审计、风险识别',
-                tag: 'required',
-                basePrice: 14400,
-                pricing: 'db', // 按数据库实例
-                dbPrice: 4800,
-                required: [2, 3, 4]
-            },
-            logAudit: {
-                name: '日志审计服务',
-                desc: '集中日志采集、存储、分析',
-                tag: 'required',
-                basePrice: 7200,
-                pricing: 'storage', // 按存储容量
-                storagePricePerTB: 1200,
-                required: [2, 3, 4]
-            },
+
             cloudFirewall: {
                 name: '云防火墙',
-                desc: '南北向 + 东西向流量管控（二级：高级版 | 三级：企业版）',
+                desc: '南北向 + 东西向流量管控（二级：高级版 | 三级及以上：企业版）',
                 tag: 'required',
                 basePrice: 4800,
                 pricing: 'tier',
@@ -353,6 +339,16 @@
                 basePrice: 3000,
                 pricing: 'domain', // 按域名
                 domainPrice: 2000,
+                required: [2, 3, 4]
+            },
+            dsc: {
+                name: '数据安全中心（DSC）',
+                desc: '敏感数据识别、数据脱敏、数据库审计一体化',
+                tag: 'required',
+                basePrice: 24000,
+                pricing: 'tier',
+                tiers: { 2: 12000, 3: 24000, 4: 48000 },
+                versions: { 2: '标准版', 3: '企业版', 4: '旗舰版' },
                 required: [2, 3, 4]
             },
 
@@ -405,16 +401,6 @@
                 pricing: 'flat',
                 required: []
             },
-            compliance: {
-                name: '配置审计 (Config)',
-                desc: '资源配置合规性审计',
-                tag: 'recommended',
-                basePrice: 5000,
-                pricing: 'rule',
-                rules: 20,
-                extraRulePrice: 200,
-                required: []
-            },
             soc: {
                 name: 'Agentic SOC（智能安全运营中心）',
                 desc: 'AI 驱动的安全事件自动响应、威胁狩猎、智能分析',
@@ -458,6 +444,7 @@
         // 初始化产品列表
         function updateProducts() {
             const level = parseInt(document.getElementById('level').value);
+            const containerCores = parseInt(document.getElementById('containerCores').value) || 0;
             const requiredContainer = document.getElementById('required-products');
             const advancedContainer = document.getElementById('advanced-products');
             
@@ -469,7 +456,7 @@
             Object.keys(PRICING).forEach(key => {
                 const product = PRICING[key];
                 if (product.required && product.required.includes(level)) {
-                    requiredContainer.appendChild(createProductCard(key, product, true, level));
+                    requiredContainer.appendChild(createProductCard(key, product, true, level, containerCores));
                 }
             });
             
@@ -478,13 +465,13 @@
             Object.keys(PRICING).forEach(key => {
                 const product = PRICING[key];
                 if (!product.required || !product.required.includes(level)) {
-                    advancedContainer.appendChild(createProductCard(key, product, false, level));
+                    advancedContainer.appendChild(createProductCard(key, product, false, level, containerCores));
                 }
             });
         }
         
         // 创建产品卡片
-        function createProductCard(key, product, isRequired, level) {
+        function createProductCard(key, product, isRequired, level, containerCores = 0) {
             const div = document.createElement('div');
             div.className = `product-card ${isRequired ? 'required' : ''}`;
             div.onclick = () => toggleProduct(key, div);
@@ -494,11 +481,17 @@
             
             // 显示产品版本（如果有）
             let versionText = '';
-            if (product.versions && product.versions[level]) {
+            let displayLevel = level;
+            
+            // 云安全中心：有容器核数时自动升级旗舰版
+            if (key === 'hostSecurity' && product.containerUpgrade && containerCores > 0) {
+                displayLevel = 3; // 强制使用旗舰版
+                versionText = `<span style="background: #dc3545; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; margin-left: 8px;">旗舰版（容器）</span>`;
+            } else if (product.versions && product.versions[level]) {
                 versionText = `<span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; margin-left: 8px;">${product.versions[level]}</span>`;
             }
             
-            const priceText = formatPrice(product, 10, 5, 1000, 3, 5, level);
+            const priceText = formatPrice(product, 10, 5, 1000, 3, 5, displayLevel);
             
             div.innerHTML = `
                 <div class="product-header">

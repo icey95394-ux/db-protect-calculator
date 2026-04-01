@@ -274,13 +274,13 @@
             // 基础安全产品（等保必选）
             waf: {
                 name: 'Web 应用防火墙 (WAF)',
-                desc: '防护 SQL 注入、XSS、Web 漏洞等攻击',
+                desc: '防护 SQL 注入、XSS、Web 漏洞等攻击（官网价：高级版¥64,560/年）',
                 tag: 'required',
-                basePrice: 9800,
-                pricing: 'domain', // 按域名计费
-                domainPrice: 2000, // 每个额外域名
-                qpsThreshold: 1000,
-                qpsPrice: 5000, // 每超过 1000 QPS
+                basePrice: 64560,
+                pricing: 'tier',
+                tiers: { 2: 64560, 3: 135600, 4: 375600 },
+                versions: { 2: '高级版', 3: '企业版', 4: '旗舰版' },
+                domainPrice: 2000,
                 required: [2, 3, 4]
             },
             ddosBasic: {
@@ -292,43 +292,43 @@
                 required: [2, 3, 4]
             },
             ddosPro: {
-                name: 'DDoS 高防 IP（专业版）',
-                desc: '防护 30Gbps-300Gbps DDoS 攻击',
+                name: 'DDoS 原生防护（中小企业普惠版）',
+                desc: '防护 DDoS 攻击，中小企业普惠方案',
                 tag: 'required',
-                basePrice: 28000,
-                pricing: 'qps',
-                qpsThreshold: 5000,
-                qpsMultiplier: 1.5,
+                basePrice: 178320,
+                pricing: 'flat',
                 required: [3, 4]
             },
             hostSecurity: {
                 name: '云安全中心',
-                desc: '主机入侵检测、漏洞管理、基线检查（二级：高级版 | 三级/容器：旗舰版）',
+                desc: '主机入侵检测、漏洞管理、基线检查（官网价：高级版¥720/台/年）',
                 tag: 'required',
-                basePrice: 2000,
+                basePrice: 720,
                 pricing: 'ecs',
+                tiers: { 2: 720, 3: 1800, 4: 1800 },
                 versions: { 2: '高级版', 3: '旗舰版', 4: '旗舰版' },
-                containerUpgrade: true, // 有容器时自动升级旗舰版
+                containerUpgrade: true,
+                containerPricePerCore: 60,
                 required: [2, 3, 4]
             },
             bastion: {
                 name: '堡垒机',
-                desc: '运维审计、权限管控、会话录制（二级：高级版 | 三级：企业版）',
+                desc: '运维审计、权限管控、会话录制（官网价：基础版¥34,884/年）',
                 tag: 'required',
-                basePrice: 4800,
+                basePrice: 34884,
                 pricing: 'tier',
-                tiers: { 2: 4800, 3: 9600, 4: 19200 },
-                versions: { 2: '高级版', 3: '企业版', 4: '旗舰版' },
+                tiers: { 2: 34884, 3: 45900, 4: 45900 },
+                versions: { 2: '基础版', 3: '企业双擎版', 4: '企业双擎版' },
                 required: [2, 3, 4]
             },
 
             cloudFirewall: {
                 name: '云防火墙',
-                desc: '南北向 + 东西向流量管控（二级：高级版 | 三级及以上：企业版）',
+                desc: '南北向 + 东西向流量管控（官网价：高级版¥45,600/年）',
                 tag: 'required',
-                basePrice: 4800,
+                basePrice: 45600,
                 pricing: 'tier',
-                tiers: { 2: 4800, 3: 9600, 4: 19200 },
+                tiers: { 2: 45600, 3: 139200, 4: 348000 },
                 versions: { 2: '高级版', 3: '企业版', 4: '旗舰版' },
                 required: [2, 3, 4]
             },
@@ -343,12 +343,12 @@
             },
             dsc: {
                 name: '数据安全中心（DSC）',
-                desc: '敏感数据识别、数据脱敏、数据库审计一体化',
+                desc: '敏感数据识别、数据脱敏、数据库审计一体化（官网价：等保合规版¥49,200/年）',
                 tag: 'required',
-                basePrice: 24000,
+                basePrice: 49200,
                 pricing: 'tier',
-                tiers: { 2: 12000, 3: 24000, 4: 48000 },
-                versions: { 2: '标准版', 3: '企业版', 4: '旗舰版' },
+                tiers: { 2: 49200, 3: 53400, 4: 108600 },
+                versions: { 2: '等保合规版', 3: '高级版', 4: '企业版' },
                 required: [2, 3, 4]
             },
 
@@ -491,7 +491,7 @@
                 versionText = `<span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; margin-left: 8px;">${product.versions[level]}</span>`;
             }
             
-            const priceText = formatPrice(product, 10, 5, 1000, 3, 5, displayLevel);
+            const priceText = formatPrice(product, 10, 5, 1000, 3, 5, displayLevel, containerCores);
             
             div.innerHTML = `
                 <div class="product-header">
@@ -509,15 +509,24 @@
         }
         
         // 格式化价格显示
-        function formatPrice(product, ecsCount, dbCount, qps, storageTB, domainCount, level) {
+        function formatPrice(product, ecsCount, dbCount, qps, storageTB, domainCount, level, containerCores = 0) {
             if (product.pricing === 'free') return '免费';
             
             let price = product.basePrice;
             let unit = '/年';
             
             if (product.pricing === 'ecs') {
-                price = product.basePrice * ecsCount;
-                unit = `/年 (¥${product.basePrice}/台)`;
+                // 云安全中心：基础价 + 容器核数附加费
+                let baseUnitPrice = product.tiers[level] || product.basePrice;
+                price = baseUnitPrice * ecsCount;
+                unit = `/台/年 (¥${baseUnitPrice}/台)`;
+                
+                // 如果是旗舰版且有容器，加收核费用
+                if (product.containerUpgrade && containerCores > 0) {
+                    const containerPrice = containerCores * (product.containerPricePerCore || 60);
+                    price += containerPrice;
+                    unit += ` + ¥${product.containerPricePerCore || 60}/核/年`;
+                }
             } else if (product.pricing === 'db') {
                 const extra = Math.max(0, dbCount - 1) * (product.dbPrice || 0);
                 price += extra;
@@ -639,7 +648,15 @@
             if (product.pricing === 'free') return 0;
             
             if (product.pricing === 'ecs') {
-                price = product.basePrice * ecsCount;
+                // 云安全中心：基础价 + 容器核数附加费
+                let baseUnitPrice = product.tiers[level] || product.basePrice;
+                price = baseUnitPrice * ecsCount;
+                
+                // 如果是旗舰版且有容器，加收核费用
+                if (product.containerUpgrade && containerCores > 0) {
+                    const containerPrice = containerCores * (product.containerPricePerCore || 60);
+                    price += containerPrice;
+                }
             } else if (product.pricing === 'db') {
                 price += Math.max(0, dbInstances - 1) * (product.dbPrice || 0);
             } else if (product.pricing === 'qps') {

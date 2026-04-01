@@ -293,11 +293,11 @@
             },
             ddosPro: {
                 name: 'DDoS 原生防护（中小企业普惠版）',
-                desc: '防护 DDoS 攻击，中小企业普惠方案',
-                tag: 'required',
+                desc: '防护 DDoS 攻击，中小企业普惠方案（对外服务建议配置）',
+                tag: 'recommended',
                 basePrice: 178320,
                 pricing: 'flat',
-                required: [3, 4]
+                required: []
             },
             hostSecurity: {
                 name: '云安全中心',
@@ -334,12 +334,12 @@
             },
             sslCert: {
                 name: 'SSL 证书服务',
-                desc: 'HTTPS 加密传输',
-                tag: 'required',
+                desc: 'HTTPS 加密传输（对外 Web 服务建议配置）',
+                tag: 'recommended',
                 basePrice: 3000,
-                pricing: 'domain', // 按域名
+                pricing: 'domain',
                 domainPrice: 2000,
-                required: [2, 3, 4]
+                required: []
             },
             dsc: {
                 name: '数据安全中心（DSC）',

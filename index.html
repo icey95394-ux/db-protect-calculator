@@ -93,7 +93,7 @@
     <div class="container">
         <div class="header">
             <h1>🛡️ 阿里云等保合规计算器 · 专业版</h1>
-            <p>基于实际业务规格精准估算 | 官网 List 价 | 小笨出品 🐾</p>
+            <p>基于实际业务规格精准估算 | 官网 List 价（2026-04-02 更新）| 小笨出品 🐾</p>
         </div>
         
         <div class="calculator">
@@ -175,6 +175,45 @@
                         <div class="hint">日志审计、备份存储容量</div>
                     </div>
                 </div>
+                
+                <!-- 高级规格参数（按需填写） -->
+                <div class="subsection" style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin-top: 20px;">
+                    <h4 style="color: #667eea; margin-bottom: 15px;">⚙️ 高级规格参数（用于精准计价，按需填写）</h4>
+                    <div class="grid-4" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                        <div class="form-group">
+                            <label for="ddosBandwidth">DDoS 防护带宽</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="ddosBandwidth" value="100" min="0" max="10000">
+                                <div class="unit">Mbps</div>
+                            </div>
+                            <div class="hint">实际业务带宽</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="ddosIpCount">DDoS 防护 IP 数</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="ddosIpCount" value="10" min="0" max="1000">
+                                <div class="unit">个</div>
+                            </div>
+                            <div class="hint">需要防护的公网 IP</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="fwBandwidthExt">云防火墙扩展带宽</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="fwBandwidthExt" value="0" min="0" max="10000">
+                                <div class="unit">Mbps</div>
+                            </div>
+                            <div class="hint">超出包含带宽的部分</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="bastionAssets">堡垒机资产数</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="bastionAssets" value="50" min="50" max="10000">
+                                <div class="unit">个</div>
+                            </div>
+                            <div class="hint">需审计的资产数量</div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- 第三步：基础安全产品 -->
@@ -254,15 +293,20 @@
                     <strong>💡 温馨提示：</strong>
                     <ul>
                         <li>以上价格为阿里云官网 List 价参考，实际成交价可能因商务谈判、打包优惠有所差异</li>
+                        <li><strong>等保测评价格因地域和测评机构不同，价格有差异，详情可咨询安全 PDSA</strong></li>
+                        <li>渗透测试价格参考官网安全管家服务（Web 简单版¥50,000/套/次，≤20 API）</li>
                         <li>等保测评证书有效期为 1 年，到期需重新测评；安全产品按年订阅</li>
                         <li>三级等保建议每年进行一次渗透测试和安全加固</li>
                         <li>阿里云等保合规包可享受 15%-25% 打包优惠，详询客户经理</li>
                         <li>QPS 超过 10000 建议联系架构师优化 WAF 和 DDoS 配置</li>
+                        <li><strong>DDoS 原生防护 2.0：</strong>中小企业普惠版（保险模式）防护次数 2 次/月，建议对外服务系统选择无忧模式</li>
+                        <li><strong>数据安全中心：</strong>企业版包含 3TB 存储识别、3 万张表、3 个数据库实例，如需扩展按阶梯计费</li>
+                        <li><strong>堡垒机：</strong>企业双擎版支持双引擎审计（SSH + RDP），基础版 RDP 并发数较低（50 资产仅支持 20 个 RDP 会话）</li>
                     </ul>
                 </div>
                 
                 <div class="disclaimer">
-                    <strong>⚠️ 免责声明：</strong>本计算器基于阿里云官网公开价格信息估算，仅供参考。实际费用可能因配置细节、地域、促销活动、商务条款等因素有所差异。建议联系阿里云安全 PDSA 或 BTE 同学获取准确报价和优惠折扣。
+                    <strong>⚠️ 免责声明：</strong>本计算器基于阿里云官网公开价格信息估算（更新时间：2026-04-02），仅供参考。实际费用可能因配置细节、地域、促销活动、商务条款等因素有所差异。建议联系阿里云安全 PDSA 或 BTE 同学获取准确报价和优惠折扣。<strong>等保测评价格因地域和测评机构不同，价格有差异，详情可咨询安全 PDSA。</strong>
                 </div>
             </div>
         </div>
@@ -270,17 +314,32 @@
     
     <script>
         // 产品价格配置（基于阿里云官网 List 价，单位：元/年，除非特别说明）
+        // 更新时间：2026-04-02 根据官网最新计费规则
         const PRICING = {
             // 基础安全产品（等保必选）
             waf: {
                 name: 'Web 应用防火墙 (WAF)',
-                desc: '防护 SQL 注入、XSS、Web 漏洞等攻击（官网价：高级版¥64,560/年）',
+                desc: '防护 SQL 注入、XSS、Web 漏洞等攻击',
                 tag: 'required',
-                basePrice: 64560,
+                basePrice: 46560, // 高级版 3880 元/月 × 12
                 pricing: 'tier',
-                tiers: { 2: 64560, 3: 135600, 4: 375600 },
+                tiers: { 
+                    2: 46560,   // 高级版：3880×12
+                    3: 117600,  // 企业版：9800×12
+                    4: 357600   // 旗舰版：29800×12
+                },
                 versions: { 2: '高级版', 3: '企业版', 4: '旗舰版' },
-                domainPrice: 2000,
+                // 域名扩展：阶梯计费（官网：1-10 个¥150/个/月，10-100 个¥110/个/月）
+                domainTiers: [
+                    { max: 10, price: 1800 },    // 150×12
+                    { max: 100, price: 1320 },   // 110×12
+                    { max: 300, price: 720 },    // 60×12
+                    { max: 500, price: 360 },    // 30×12
+                    { max: 2000, price: 120 },   // 10×12
+                    { max: Infinity, price: 12 } // 1×12
+                ],
+                // QPS 扩展：如果开通 API 安全或 BOT，每功能加收¥2/QPS/月
+                qpsPricePerFunction: 24, // 2×12
                 required: [2, 3, 4]
             },
             ddosBasic: {
@@ -292,44 +351,85 @@
                 required: [2, 3, 4]
             },
             ddosPro: {
-                name: 'DDoS 原生防护（中小企业普惠版）',
-                desc: '防护 DDoS 攻击，中小企业普惠方案（对外服务建议配置）',
+                name: 'DDoS 原生防护 2.0（中小企业普惠版）',
+                desc: '防护 DDoS 攻击，中小企业普惠方案（官网价：保险模式¥13,000/月 + 带宽费 + IP 费）',
                 tag: 'recommended',
-                basePrice: 178320,
-                pricing: 'flat',
+                basePrice: 156000, // 13000×12（基础防护费）
+                pricing: 'ddos',
+                // 保险模式：¥13,000/月 + ¥34/Mbps/月 + ¥160/IP/月（前 100 个）
+                baseProtectionPrice: 13000, // 13000×12
+                bandwidthPricePerMbps: 408, // 34×12
+                ipPricePerUnit: 1920, // 160×12
+                // 无忧模式：¥40,100/月 + ¥67/Mbps/月
+                unlimitedProtectionPrice: 481200, // 40100×12
+                unlimitedBandwidthPrice: 804, // 67×12
                 required: []
             },
             hostSecurity: {
                 name: '云安全中心',
-                desc: '主机入侵检测、漏洞管理、基线检查（官网价：高级版¥720/台/年）',
+                desc: '主机入侵检测、漏洞管理、基线检查',
                 tag: 'required',
-                basePrice: 720,
+                basePrice: 720, // 高级版 60 元/台/月 × 12
                 pricing: 'ecs',
-                tiers: { 2: 720, 3: 1800, 4: 1800 },
-                versions: { 2: '高级版', 3: '旗舰版', 4: '旗舰版' },
+                tiers: { 
+                    2: 720,    // 高级版：60×12
+                    3: 1800,   // 企业版：150×12
+                    4: 1860    // 旗舰版：150×12 + 5×12（容器）
+                },
+                versions: { 2: '高级版', 3: '企业版', 4: '旗舰版' },
                 containerUpgrade: true,
-                containerPricePerCore: 60,
+                containerPricePerCore: 60, // 5 元/核/月 × 12
                 required: [2, 3, 4]
             },
             bastion: {
-                name: '堡垒机',
-                desc: '运维审计、权限管控、会话录制（官网价：基础版¥34,884/年）',
+                name: '堡垒机（运维安全中心）',
+                desc: '运维审计、权限管控、会话录制',
                 tag: 'required',
-                basePrice: 34884,
+                basePrice: 18240, // 基础版 50 资产：1520×12
                 pricing: 'tier',
-                tiers: { 2: 34884, 3: 45900, 4: 45900 },
+                tiers: { 
+                    2: 18240,   // 基础版 50 资产：1520×12
+                    3: 31200,   // 企业双擎版 50 资产：2600×12
+                    4: 31200    // 企业双擎版 50 资产：2600×12
+                },
                 versions: { 2: '基础版', 3: '企业双擎版', 4: '企业双擎版' },
+                // 资产数阶梯价格（月价×12）
+                assetTiers: {
+                    50: { base: 18240, enterprise: 31200 },      // 50 资产
+                    100: { base: 30240, enterprise: 55200 },     // 100 资产
+                    200: { base: 42240, enterprise: 74400 },     // 200 资产
+                    500: { base: 63360, enterprise: 110400 },    // 500 资产
+                    1000: { base: null, enterprise: 198000 },    // 1000 资产
+                    2000: { base: null, enterprise: 318000 },    // 2000 资产
+                    5000: { base: null, enterprise: 462000 },    // 5000 资产
+                    10000: { base: null, enterprise: 708000 }    // 10000 资产
+                },
+                // 扩展包（月价×12）
+                bandwidthExtensionPrice: 960,  // 80×12（/Mbit/s/月）
+                storageExtensionPricePerTB: 3600, // 300×12（/TB/月）
+                // 默认带宽和存储
+                defaultBandwidth: { base: 8, enterprise: 12 }, // Mbit/s
+                defaultStorage: { base: 1, enterprise: 2 }, // TB
                 required: [2, 3, 4]
             },
-
             cloudFirewall: {
                 name: '云防火墙',
-                desc: '南北向 + 东西向流量管控（官网价：高级版¥45,600/年）',
+                desc: '南北向 + 东西向流量管控',
                 tag: 'required',
-                basePrice: 45600,
+                basePrice: 33600, // 高级版 2800 元/月 × 12
                 pricing: 'tier',
-                tiers: { 2: 45600, 3: 139200, 4: 348000 },
+                tiers: { 
+                    2: 33600,   // 高级版：2800×12
+                    3: 115200,  // 企业版：9600×12
+                    4: 312000   // 旗舰版：26000×12
+                },
                 versions: { 2: '高级版', 3: '企业版', 4: '旗舰版' },
+                // 带宽规格（Mbps）
+                bandwidthTiers: { 2: 30, 3: 200, 4: 800 },
+                // 扩展带宽：≤200Mbps 时¥50/Mbps/月，>200Mbps 时¥40/Mbps/月
+                bandwidthPrice: 600, // 50×12（简化按 600 元/Mbps/年）
+                // 扩展实例：¥1500/个/月
+                instancePrice: 18000, // 1500×12
                 required: [2, 3, 4]
             },
             sslCert: {
@@ -343,35 +443,55 @@
             },
             dsc: {
                 name: '数据安全中心（DSC）',
-                desc: '敏感数据识别、数据脱敏、数据库审计一体化（官网价：等保合规版¥49,200/年）',
+                desc: '敏感数据识别、数据脱敏、数据库审计一体化',
                 tag: 'required',
-                basePrice: 49200,
+                basePrice: 36000, // 数据库审计（等保合规版）3000×12
                 pricing: 'tier',
-                tiers: { 2: 49200, 3: 53400, 4: 108600 },
-                versions: { 2: '等保合规版', 3: '高级版', 4: '企业版' },
+                tiers: { 
+                    2: 36000,   // 数据库审计（等保合规版）：3000×12
+                    3: 38400,   // 高级版：3200×12
+                    4: 93600    // 企业版：7800×12
+                },
+                versions: { 2: '数据库审计（等保合规版）', 3: '高级版', 4: '企业版' },
+                // 默认包含规格
+                includedSpecs: {
+                    2: { storage: 1, dbInstances: 3, logStorage: 0.65 }, // 1TB 存储、3 个 DB、650GB 日志
+                    3: { storage: 1, tableCount: 1, audit: 1, dbInstances: 1, logStorage: 0.25 }, // 1TB 识别、1 万张表、1TB 审计、1 个 DB、250GB 日志
+                    4: { storage: 3, tableCount: 3, audit: 3, dbInstances: 3, detection: 3, imageDesensitization: 1, columns: 10, logStorage: 1.5 } // 3TB 识别、3 万张表、3TB 审计、3 个 DB、3TB 检测、1 万张脱敏、10 列加密、1.5TB 日志
+                },
+                // 扩展费用（月价×12）
+                extraDbInstancePrice: 16800, // 1400×12（1-20 个）
+                extraStoragePricePerTB: 12000, // 1000×12（0-5TB）
+                extraTablePricePer10k: 4800, // 400×12（0-5 万张）
+                extraLogStoragePricePerTB: 4800, // 400×12
                 required: [2, 3, 4]
             },
-
             
             // 增值安全产品（可选）
             bot: {
                 name: 'BOT 管理',
-                desc: '爬虫识别、恶意 Bot 防护',
+                desc: '爬虫识别、恶意 Bot 防护（官网价：新版¥8000/月）',
                 tag: 'optional',
-                basePrice: 15000,
-                pricing: 'qps',
+                basePrice: 96000, // 8000×12
+                pricing: 'flat',
+                // WAF 联动：如果 WAF QPS>10000，每 QPS 加收¥2/月
                 qpsThreshold: 10000,
-                qpsPrice: 3000,
+                qpsPrice: 24, // 2×12
                 required: []
             },
             apiSecurity: {
-                name: 'API 安全网关',
+                name: 'API 安全',
                 desc: 'API 资产发现、异常检测、数据防泄漏',
                 tag: 'recommended',
-                basePrice: 18000,
-                pricing: 'api',
-                apiCalls: 1000000, // 包含 100 万次调用
-                extraPricePer10k: 50,
+                pricing: 'tier',
+                tiers: {
+                    2: 60000,   // 高级版：5000×12
+                    3: 120000,  // 企业版：10000×12
+                    4: 240000   // 旗舰版：20000×12
+                },
+                // WAF 联动：如果 WAF QPS>10000，每 QPS 加收¥2/月
+                qpsThreshold: 10000,
+                qpsPrice: 24, // 2×12
                 required: []
             },
             imageScan: {
@@ -414,16 +534,23 @@
         
         // 等保测评服务价格
         const ASSESSMENT_PRICES = {
-            2: { name: '二级等保测评', price: 80000 },
-            3: { name: '三级等保测评', price: 120000 },
-            4: { name: '四级等保测评', price: 200000 }
+            2: { name: '二级等保测评', price: 80000, note: '因地域和测评机构不同，价格有差异，详情可咨询安全 PDSA' },
+            3: { name: '三级等保测评', price: 120000, note: '因地域和测评机构不同，价格有差异，详情可咨询安全 PDSA' },
+            4: { name: '四级等保测评', price: 200000, note: '因地域和测评机构不同，价格有差异，详情可咨询安全 PDSA' }
         };
         
-        // 渗透测试价格
+        // 渗透测试价格（官网：安全管家 - 渗透测试服务）
         const PENETRATION_PRICES = {
-            2: { name: '二级渗透测试', price: 15000 },
-            3: { name: '三级渗透测试', price: 25000 },
-            4: { name: '四级渗透测试', price: 40000 }
+            2: { name: '渗透测试（Web 系统 - 简单）', price: 50000, note: '≤20 API，官网价¥50,000/套/次' },
+            3: { name: '渗透测试（Web 系统 - 简单）', price: 50000, note: '≤20 API，官网价¥50,000/套/次' },
+            4: { name: '渗透测试（Web 系统 - 简单）', price: 50000, note: '≤20 API，官网价¥50,000/套/次' }
+        };
+        
+        // 渗透测试附加选项
+        const PENETRATION_ADDONS = {
+            appServer: { name: 'App 测试 - 服务端', price: 20000, note: '官网价¥20,000/套/次' },
+            appClient: { name: 'App 测试 - 客户端', price: 20000, note: '官网价¥20,000/套/次' },
+            appFull: { name: 'App 测试 - 全量', price: 40000, note: '服务端 + 客户端，官网价¥40,000/套/次' }
         };
         
         // 更新等保级别提示
@@ -441,6 +568,12 @@
             }
         }
         
+        // 等保级别变化时，清除用户手动取消的状态（因为不同级别必选项不同）
+        document.getElementById('level').addEventListener('change', function() {
+            userDisabledRequired = {};
+            updateProducts();
+        });
+        
         // 初始化产品列表
         function updateProducts() {
             const level = parseInt(document.getElementById('level').value);
@@ -455,16 +588,24 @@
             requiredContainer.innerHTML = '';
             Object.keys(PRICING).forEach(key => {
                 const product = PRICING[key];
-                if (product.required && product.required.includes(level)) {
+                const isRequired = product.required && product.required.includes(level);
+                // 如果是必选项但被用户手动取消了，显示在可选区
+                const isUserDisabled = userDisabledRequired[key] === true;
+                
+                if (isRequired && !isUserDisabled) {
                     requiredContainer.appendChild(createProductCard(key, product, true, level, containerCores));
                 }
             });
             
-            // 渲染可选产品
+            // 渲染可选产品（包括原本可选的 + 用户手动取消的必选项）
             advancedContainer.innerHTML = '';
             Object.keys(PRICING).forEach(key => {
                 const product = PRICING[key];
-                if (!product.required || !product.required.includes(level)) {
+                const isRequired = product.required && product.required.includes(level);
+                const isUserDisabled = userDisabledRequired[key] === true;
+                
+                // 原本可选的 OR 被用户手动取消的必选项
+                if (!isRequired || isUserDisabled) {
                     advancedContainer.appendChild(createProductCard(key, product, false, level, containerCores));
                 }
             });
@@ -491,12 +632,16 @@
                 versionText = `<span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; margin-left: 8px;">${product.versions[level]}</span>`;
             }
             
+            // 检查用户是否手动取消了必选项
+            const isUserDisabled = userDisabledRequired[key] === true;
+            const isChecked = isRequired && !isUserDisabled; // 必选项默认勾选，除非用户手动取消
+            
             const priceText = formatPrice(product, 10, 5, 1000, 3, 5, displayLevel, containerCores);
             
             div.innerHTML = `
                 <div class="product-header">
                     <div class="checkbox-wrapper">
-                        <input type="checkbox" id="prod_${key}" ${isRequired ? 'checked disabled' : ''} value="${key}">
+                        <input type="checkbox" id="prod_${key}" ${isChecked ? 'checked' : ''} value="${key}">
                         <span class="product-name">${product.name}${versionText}</span>
                     </div>
                     <span class="product-tag ${tagClass}">${tagName}</span>
@@ -514,56 +659,156 @@
             
             let price = product.basePrice;
             let unit = '/年';
+            let priceDetails = [];
             
             if (product.pricing === 'ecs') {
                 // 云安全中心：基础价 + 容器核数附加费
                 let baseUnitPrice = product.tiers[level] || product.basePrice;
                 price = baseUnitPrice * ecsCount;
-                unit = `/台/年 (¥${baseUnitPrice}/台)`;
+                priceDetails.push(`¥${baseUnitPrice}/台/年`);
                 
                 // 如果是旗舰版且有容器，加收核费用
                 if (product.containerUpgrade && containerCores > 0) {
                     const containerPrice = containerCores * (product.containerPricePerCore || 60);
                     price += containerPrice;
-                    unit += ` + ¥${product.containerPricePerCore || 60}/核/年`;
+                    priceDetails.push(`¥${product.containerPricePerCore || 60}/核/年`);
                 }
+                unit = `/台/年 (${priceDetails.join(' + ')})`;
+                
+            } else if (product.pricing === 'ddos') {
+                // DDoS 原生防护 2.0：基础防护费 + 带宽费 + IP 费
+                const baseProtectionPrice = product.baseProtectionPrice || 156000;
+                const bandwidthPrice = ecsCount * (product.bandwidthPricePerMbps || 408); // 假设 ECS 台数对应带宽需求
+                const ipPrice = Math.min(ecsCount, 100) * (product.ipPricePerUnit || 1920);
+                price = baseProtectionPrice + bandwidthPrice + ipPrice;
+                priceDetails.push(`保险模式`);
+                priceDetails.push(`¥${product.bandwidthPricePerMbps || 34}/Mbps/月`);
+                priceDetails.push(`¥${product.ipPricePerUnit || 160}/IP/月（前 100 个）`);
+                unit = `/年 (${priceDetails.join(', ')})`;
+                
             } else if (product.pricing === 'db') {
                 const extra = Math.max(0, dbCount - 1) * (product.dbPrice || 0);
                 price += extra;
                 unit = `/年 (首库包含)`;
+                
             } else if (product.pricing === 'qps') {
                 if (qps > (product.qpsThreshold || 0)) {
                     const extra = Math.ceil((qps - product.qpsThreshold) / 1000) * (product.qpsPrice || 0);
                     price += extra;
                 }
                 unit = `/年 (基准${product.qpsThreshold || 0} QPS)`;
+                
             } else if (product.pricing === 'storage') {
                 const extra = storageTB * (product.storagePricePerTB || 0);
                 price += extra;
                 unit = `/年 (¥${product.storagePricePerTB || 0}/TB)`;
+                
             } else if (product.pricing === 'domain') {
-                const extra = Math.max(0, domainCount - 1) * (product.domainPrice || 0);
-                price += extra;
-                unit = `/年 (首域名包含)`;
+                // SSL 证书：域名扩展计费
+                let extraDomains = Math.max(0, domainCount - 1);
+                let domainPrice = 0;
+                
+                if (product.domainTiers) {
+                    // 阶梯计费
+                    let remaining = extraDomains;
+                    let prevMax = 0;
+                    for (let tier of product.domainTiers) {
+                        let countInTier = Math.min(remaining, tier.max - prevMax);
+                        if (countInTier > 0) {
+                            domainPrice += countInTier * tier.price;
+                            remaining -= countInTier;
+                        }
+                        prevMax = tier.max;
+                        if (remaining <= 0) break;
+                    }
+                } else {
+                    domainPrice = extraDomains * (product.domainPrice || 0);
+                }
+                
+                price += domainPrice;
+                unit = `/年 (首域名包含，扩展¥${domainPrice}/年)`;
+                
             } else if (product.pricing === 'tier') {
                 price = product.tiers[level] || product.tiers[3] || product.basePrice;
-                unit = '/年';
+                
+                // DSC：显示默认包含规格
+                if (product.includedSpecs && product.includedSpecs[level]) {
+                    const specs = product.includedSpecs[level];
+                    if (specs.storage) priceDetails.push(`含${specs.storage}TB 存储识别`);
+                    if (specs.tableCount) priceDetails.push(`含${specs.tableCount}万张表`);
+                    if (specs.dbInstances) priceDetails.push(`含${specs.dbInstances}个 DB 实例`);
+                    if (specs.audit) priceDetails.push(`含${specs.audit}TB 审计`);
+                    if (specs.logStorage) priceDetails.push(`含${specs.logStorage}TB 日志`);
+                }
+                
+                // DSC 扩展费用
+                if (product.extraDbInstancePrice && dbInstances > (product.includedSpecs[level]?.dbInstances || 0)) {
+                    const extraDb = dbInstances - (product.includedSpecs[level]?.dbInstances || 0);
+                    const extraDbPrice = extraDb * product.extraDbInstancePrice;
+                    price += extraDbPrice;
+                    priceDetails.push(`扩展 DB¥${extraDbPrice}/年`);
+                }
+                
+                // 云防火墙：显示带宽规格
+                if (product.bandwidthTiers && product.bandwidthTiers[level]) {
+                    const bandwidth = product.bandwidthTiers[level];
+                    priceDetails.push(`含${bandwidth}Mbps`);
+                }
+                
+                // WAF/API 安全/BOT：QPS 扩展费用
+                if (product.qpsPricePerFunction || product.qpsPrice) {
+                    const qpsPrice = product.qpsPricePerFunction || product.qpsPrice;
+                    const qpsExtra = qps > (product.qpsThreshold || 0) 
+                        ? Math.ceil((qps - product.qpsThreshold) / 1000) * qpsPrice 
+                        : 0;
+                    if (qpsExtra > 0) {
+                        price += qpsExtra;
+                        priceDetails.push(`QPS 扩展¥${qpsExtra}/年`);
+                    }
+                }
+                
+                if (priceDetails.length > 0) {
+                    unit = `/年 (${priceDetails.join(', ')})`;
+                } else {
+                    unit = '/年';
+                }
+                
             } else if (product.pricing === 'container') {
-                const extra = 20 * (product.perCore || 0);
+                const extra = containerCores * (product.perCore || 0);
                 price += extra;
-                unit = `/年 (20 核)`;
+                unit = `/年 (¥${product.perCore || 0}/核)`;
             }
             
             return `¥${price.toLocaleString()} <span class="unit">${unit}</span>`;
         }
         
+        // 用户手动取消的必选项（临时状态）
+        let userDisabledRequired = {};
+        
         // 切换产品选择
         function toggleProduct(key, card) {
             const checkbox = document.getElementById(`prod_${key}`);
-            if (checkbox.disabled) return;
+            const product = PRICING[key];
+            const level = parseInt(document.getElementById('level').value);
+            const isRequired = product.required && product.required.includes(level);
+            
+            // 如果是必选项且要取消勾选
+            if (checkbox.checked && isRequired) {
+                const confirmed = confirm('⚠️ 等保真的需要，你确定要删除吗？再考虑一下');
+                if (!confirmed) return;
+                
+                // 记录用户手动取消的必选项
+                userDisabledRequired[key] = true;
+            } else if (!checkbox.checked && isRequired) {
+                // 如果重新勾选必选项，移除记录
+                delete userDisabledRequired[key];
+            }
             
             checkbox.checked = !checkbox.checked;
             card.classList.toggle('selected', checkbox.checked);
+            
+            // 重新渲染产品列表（必选↔可选切换）
+            updateProducts();
         }
         
         // 展开/收起增值服务
@@ -589,8 +834,16 @@
             const qps = parseInt(document.getElementById('qps').value) || 0;
             const dbInstances = parseInt(document.getElementById('dbInstances').value) || 0;
             const storageTB = parseInt(document.getElementById('storageTB').value) || 0;
+            // 高级参数
+            const ddosBandwidth = parseInt(document.getElementById('ddosBandwidth').value) || 0;
+            const ddosIpCount = parseInt(document.getElementById('ddosIpCount').value) || 0;
+            const fwBandwidthExt = parseInt(document.getElementById('fwBandwidthExt').value) || 0;
+            const bastionAssets = parseInt(document.getElementById('bastionAssets').value) || 50;
             const needAssessment = document.getElementById('assessment').value === 'yes';
             const needPenetration = document.getElementById('penetration').value === 'yes';
+            
+            // 参数对象（用于动态计价）
+            const params = { ecsCount, containerCores, domainCount, qps, dbInstances, storageTB, ddosBandwidth, ddosIpCount, fwBandwidthExt, bastionAssets };
             
             let baseTotal = 0;
             let addonTotal = 0;
@@ -603,7 +856,12 @@
                 if (!checkbox || !checkbox.checked) return;
                 
                 const isRequired = product.required && product.required.includes(level);
-                let price = calculateProductPrice(product, ecsCount, containerCores, domainCount, qps, dbInstances, storageTB, level);
+                const isUserDisabled = userDisabledRequired[key] === true;
+                
+                // 如果是必选项但被用户手动取消了，算作可选
+                const actualRequired = isRequired && !isUserDisabled;
+                
+                let price = calculateProductPrice(product, params, level);
                 
                 const item = {
                     name: product.name,
@@ -611,7 +869,7 @@
                     qty: getProductQty(product, ecsCount, containerCores, domainCount, dbInstances, storageTB)
                 };
                 
-                if (isRequired) {
+                if (actualRequired) {
                     baseTotal += price;
                     resultItems.base.push(item);
                 } else {
@@ -641,44 +899,80 @@
             renderResult(level, environment, resultItems, baseTotal, addonTotal, assessmentTotal, grandTotal);
         }
         
-        // 计算单个产品价格
-        function calculateProductPrice(product, ecsCount, containerCores, domainCount, qps, dbInstances, storageTB, level) {
-            let price = product.basePrice;
+        // 计算单个产品价格（完全动态计算，根据用户输入的实际规格）
+        function calculateProductPrice(product, params, level) {
+            const { ecsCount, containerCores, domainCount, qps, dbInstances, storageTB, ddosBandwidth, ddosIpCount, fwBandwidthExt, bastionAssets } = params;
+            let price = 0;
             
             if (product.pricing === 'free') return 0;
             
+            // 云安全中心：按 ECS 台数计算
             if (product.pricing === 'ecs') {
-                // 云安全中心：基础价 + 容器核数附加费
                 let baseUnitPrice = product.tiers[level] || product.basePrice;
                 price = baseUnitPrice * ecsCount;
-                
-                // 如果是旗舰版且有容器，加收核费用
                 if (product.containerUpgrade && containerCores > 0) {
-                    const containerPrice = containerCores * (product.containerPricePerCore || 60);
-                    price += containerPrice;
+                    price += containerCores * (product.containerPricePerCore || 60);
                 }
-            } else if (product.pricing === 'db') {
-                price += Math.max(0, dbInstances - 1) * (product.dbPrice || 0);
-            } else if (product.pricing === 'qps') {
-                if (qps > (product.qpsThreshold || 0)) {
-                    const extra = Math.ceil((qps - product.qpsThreshold) / 1000) * (product.qpsPrice || 0);
-                    price += extra;
-                }
-                if (product.qpsMultiplier && qps > product.qpsThreshold) {
-                    price *= product.qpsMultiplier;
-                }
-            } else if (product.pricing === 'storage') {
-                price += storageTB * (product.storagePricePerTB || 0);
-            } else if (product.pricing === 'domain') {
-                price += Math.max(0, domainCount - 1) * (product.domainPrice || 0);
+            // DDoS 原生防护 2.0：基础防护费 + 带宽费 + IP 费（完全按用户输入）
+            } else if (product.pricing === 'ddos') {
+                const baseProtectionPrice = (product.baseProtectionPrice || 13000) * 12;
+                const bandwidthPrice = ddosBandwidth * (product.bandwidthPricePerMbps || 408);
+                const ipPrice = Math.min(ddosIpCount, 100) * (product.ipPricePerUnit || 1920);
+                price = baseProtectionPrice + bandwidthPrice + ipPrice;
+            // WAF/云防火墙/DSC/堡垒机：基础版本价 + 扩展费用
             } else if (product.pricing === 'tier') {
                 price = product.tiers[level] || product.tiers[3] || product.basePrice;
+                // WAF：域名扩展阶梯计费
+                if (product.domainTiers && domainCount > 10) {
+                    let extraDomains = domainCount - 10;
+                    let domainPrice = 0, remaining = extraDomains, prevMax = 10;
+                    for (let tier of product.domainTiers) {
+                        let countInTier = Math.min(remaining, tier.max - prevMax);
+                        if (countInTier > 0) { domainPrice += countInTier * tier.price; remaining -= countInTier; }
+                        prevMax = tier.max;
+                        if (remaining <= 0) break;
+                    }
+                    price += domainPrice;
+                }
+                // WAF/API 安全/BOT：QPS 扩展（QPS>10000）
+                if (product.qpsPricePerFunction && qps > 10000) {
+                    price += Math.ceil((qps - 10000) / 1000) * product.qpsPricePerFunction;
+                }
+                // 云防火墙：扩展带宽（用户明确输入的值）
+                if (fwBandwidthExt > 0) {
+                    price += fwBandwidthExt * (product.bandwidthPrice || 600);
+                }
+                // DSC：扩展 DB 和存储
+                if (product.includedSpecs && product.includedSpecs[level]) {
+                    const specs = product.includedSpecs[level];
+                    if (product.extraDbInstancePrice && dbInstances > (specs.dbInstances || 0)) {
+                        price += (dbInstances - (specs.dbInstances || 0)) * product.extraDbInstancePrice;
+                    }
+                    if (product.extraStoragePricePerTB && storageTB > (specs.storage || 0)) {
+                        price += (storageTB - (specs.storage || 0)) * product.extraStoragePricePerTB;
+                    }
+                }
+                // 堡垒机：资产数阶梯计费
+                if (product.assetTiers && bastionAssets > 50) {
+                    const isEnterprise = level >= 3;
+                    const assetLevels = Object.keys(product.assetTiers).map(Number).sort((a,b) => a-b);
+                    for (let assetLevel of assetLevels) {
+                        if (bastionAssets <= assetLevel) {
+                            const tierPrice = isEnterprise ? product.assetTiers[assetLevel].enterprise : product.assetTiers[assetLevel].base;
+                            if (tierPrice) { price = tierPrice; break; }
+                        }
+                    }
+                }
+            // SSL 证书：域名扩展
+            } else if (product.pricing === 'domain') {
+                price = (product.basePrice || 0) + Math.max(0, domainCount - 1) * (product.domainPrice || 2000);
+            // 镜像扫描：按容器核数
             } else if (product.pricing === 'container') {
-                price += containerCores * (product.perCore || 0);
+                price = (product.basePrice || 0) + containerCores * (product.perCore || 200);
             }
-            
             return price;
         }
+        
         
         // 获取产品数量描述
         function getProductQty(product, ecsCount, containerCores, domainCount, dbInstances, storageTB) {
@@ -753,11 +1047,20 @@
             document.getElementById('qps').value = 1000;
             document.getElementById('dbInstances').value = 3;
             document.getElementById('storageTB').value = 5;
+            // 高级参数
+            document.getElementById('ddosBandwidth').value = 100;
+            document.getElementById('ddosIpCount').value = 10;
+            document.getElementById('fwBandwidthExt').value = 0;
+            document.getElementById('bastionAssets').value = 50;
+            // 其他
             document.getElementById('level').value = 3;
             document.getElementById('environment').value = 'aliyun';
             document.getElementById('assessment').value = 'yes';
             document.getElementById('penetration').value = 'no';
             document.getElementById('result').classList.remove('show');
+            
+            userDisabledRequired = {};
+            
             updateProducts();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }

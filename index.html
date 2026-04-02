@@ -212,6 +212,30 @@
                             </div>
                             <div class="hint">需审计的资产数量</div>
                         </div>
+                        <div class="form-group">
+                            <label for="ndrBandwidth">Agentic NDR 带宽</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="ndrBandwidth" value="200" min="0" max="10000">
+                                <div class="unit">Mbps</div>
+                            </div>
+                            <div class="hint">NDR 接入带宽（基础包含 200Mbps）</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="ndrInstances">Agentic NDR 实例数</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="ndrInstances" value="2" min="0" max="100">
+                                <div class="unit">个</div>
+                            </div>
+                            <div class="hint">NDR 实例数（基础包含 2 个）</div>
+                        </div>
+                        <div class="form-group">
+                            <label for="ndrStorage">Agentic NDR 存储扩展</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="ndrStorage" value="0" min="0" max="10000">
+                                <div class="unit">TB</div>
+                            </div>
+                            <div class="hint">全流量存储容量（按需购买）</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -513,12 +537,20 @@
                 extraKeyPrice: 500,
                 required: []
             },
-            threatDetection: {
-                name: '威胁检测服务',
-                desc: '全栈威胁检测、安全事件响应',
+            agenticNDR: {
+                name: 'Agentic NDR（网络检测与响应）',
+                desc: 'AI 驱动的网络威胁检测、攻击溯源、自动响应（官网价：¥10,000/月，含 200Mbps+2 实例+30GB 存储）',
                 tag: 'optional',
-                basePrice: 24000,
-                pricing: 'flat',
+                basePrice: 120000, // 10000×12（基础版年价）
+                pricing: 'ndr',
+                // 包含规格
+                includedBandwidth: 200, // Mbps
+                includedInstances: 2, // 个
+                includedStorage: 30, // GB 攻击存储
+                // 扩展价格（月价×12）
+                extraInstancePrice: 30000, // 2500×12/个/年
+                extraBandwidthPrice: 600, // 50×12/Mbps/年
+                extraStoragePrice: 9600, // 800×12/TB/年
                 required: []
             },
             soc: {
@@ -848,11 +880,15 @@
             const ddosIpCount = parseInt(document.getElementById('ddosIpCount').value) || 0;
             const fwBandwidthExt = parseInt(document.getElementById('fwBandwidthExt').value) || 0;
             const bastionAssets = parseInt(document.getElementById('bastionAssets').value) || 50;
+            // NDR 参数
+            const ndrBandwidth = parseInt(document.getElementById('ndrBandwidth').value) || 200;
+            const ndrInstances = parseInt(document.getElementById('ndrInstances').value) || 2;
+            const ndrStorage = parseInt(document.getElementById('ndrStorage').value) || 0;
             const needAssessment = document.getElementById('assessment').value === 'yes';
             const needPenetration = document.getElementById('penetration').value === 'yes';
             
             // 参数对象（用于动态计价）
-            const params = { ecsCount, containerCores, domainCount, qps, dbInstances, storageTB, ddosBandwidth, ddosIpCount, fwBandwidthExt, bastionAssets };
+            const params = { ecsCount, containerCores, domainCount, qps, dbInstances, storageTB, ddosBandwidth, ddosIpCount, fwBandwidthExt, bastionAssets, ndrBandwidth, ndrInstances, ndrStorage };
             
             let baseTotal = 0;
             let addonTotal = 0;
@@ -978,7 +1014,7 @@
             // 镜像扫描：按容器核数
             } else if (product.pricing === 'container') {
                 price = (product.basePrice || 0) + containerCores * (product.perCore || 200);
-            // 固定价格（BOT 管理、威胁检测等）
+            // 固定价格（BOT 管理、Agentic NDR 等）
             } else if (product.pricing === 'flat') {
                 price = product.basePrice || 0;
                 // QPS 扩展（BOT 管理）
@@ -992,6 +1028,24 @@
                 const extraKeys = Math.max(0, (params.keyCount || 10) - (product.keys || 10));
                 if (extraKeys > 0) {
                     price += extraKeys * (product.extraKeyPrice || 500);
+                }
+            // Agentic NDR（网络检测与响应）
+            } else if (product.pricing === 'ndr') {
+                price = product.basePrice || 120000;
+                // 扩展实例（超过 2 个）
+                const ndrInstances = params.ndrInstances || 2;
+                if (ndrInstances > (product.includedInstances || 2)) {
+                    price += (ndrInstances - product.includedInstances) * (product.extraInstancePrice || 30000);
+                }
+                // 扩展带宽（超过 200 Mbps）
+                const ndrBandwidth = params.ndrBandwidth || 200;
+                if (ndrBandwidth > (product.includedBandwidth || 200)) {
+                    price += (ndrBandwidth - product.includedBandwidth) * (product.extraBandwidthPrice || 600);
+                }
+                // 扩展存储（超过 30GB，按 TB 计费）
+                const ndrStorage = params.ndrStorage || 0;
+                if (ndrStorage > 0) {
+                    price += ndrStorage * (product.extraStoragePrice || 9600);
                 }
             // 兜底：使用基础价格
             } else {
@@ -1079,6 +1133,10 @@
             document.getElementById('ddosIpCount').value = 10;
             document.getElementById('fwBandwidthExt').value = 0;
             document.getElementById('bastionAssets').value = 50;
+            // NDR 参数
+            document.getElementById('ndrBandwidth').value = 200;
+            document.getElementById('ndrInstances').value = 2;
+            document.getElementById('ndrStorage').value = 0;
             // 其他
             document.getElementById('level').value = 3;
             document.getElementById('environment').value = 'aliyun';

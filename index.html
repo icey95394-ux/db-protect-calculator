@@ -978,6 +978,24 @@
             // 镜像扫描：按容器核数
             } else if (product.pricing === 'container') {
                 price = (product.basePrice || 0) + containerCores * (product.perCore || 200);
+            // 固定价格（BOT 管理、威胁检测等）
+            } else if (product.pricing === 'flat') {
+                price = product.basePrice || 0;
+                // QPS 扩展（BOT 管理）
+                if (product.qpsPrice && qps > (product.qpsThreshold || 0)) {
+                    price += Math.ceil((qps - product.qpsThreshold) / 1000) * product.qpsPrice;
+                }
+            // 密钥管理（KMS）
+            } else if (product.pricing === 'key') {
+                price = product.basePrice || 0;
+                // 密钥扩展（超过包含数量）
+                const extraKeys = Math.max(0, (params.keyCount || 10) - (product.keys || 10));
+                if (extraKeys > 0) {
+                    price += extraKeys * (product.extraKeyPrice || 500);
+                }
+            // 兜底：使用基础价格
+            } else {
+                price = product.basePrice || 0;
             }
             return price;
         }

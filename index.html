@@ -791,24 +791,33 @@
             const product = PRICING[key];
             const level = parseInt(document.getElementById('level').value);
             const isRequired = product.required && product.required.includes(level);
+            const isUserDisabled = userDisabledRequired[key] === true;
             
             // 如果是必选项且要取消勾选
-            if (checkbox.checked && isRequired) {
+            if (checkbox.checked && isRequired && !isUserDisabled) {
                 const confirmed = confirm('⚠️ 等保真的需要，你确定要删除吗？再考虑一下');
                 if (!confirmed) return;
                 
                 // 记录用户手动取消的必选项
                 userDisabledRequired[key] = true;
-            } else if (!checkbox.checked && isRequired) {
-                // 如果重新勾选必选项，移除记录
-                delete userDisabledRequired[key];
+                checkbox.checked = false;
+                card.classList.remove('selected');
+                updateProducts();
+                return;
             }
             
+            // 如果是被取消的必选项，重新勾选
+            if (!checkbox.checked && isUserDisabled) {
+                delete userDisabledRequired[key];
+                checkbox.checked = true;
+                card.classList.add('selected');
+                updateProducts();
+                return;
+            }
+            
+            // 普通可选产品，直接切换
             checkbox.checked = !checkbox.checked;
             card.classList.toggle('selected', checkbox.checked);
-            
-            // 重新渲染产品列表（必选↔可选切换）
-            updateProducts();
         }
         
         // 展开/收起增值服务
